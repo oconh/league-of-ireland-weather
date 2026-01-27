@@ -1,15 +1,8 @@
--- Ranking counties by worst weather
-
+CREATE OR REPLACE VIEW league_table AS
 SELECT
     county,
-    COUNT(*) AS days_recorded,
-    ROUND(AVG(rain_sum)::numeric, 2) AS avg_rain_mm,
-    ROUND(AVG(wind_speed)::numeric, 2) AS avg_wind_kmh,
-    ROUND(AVG(temp_min)::numeric, 2) AS avg_temp_min,
-    ROUND(AVG(rain_sum + wind_speed - temp_min)::numeric, 2) AS avg_misery_score
-FROM
-    weather_daily
-GROUP BY
-    county
-ORDER BY
-    avg_misery_score DESC;
+    SUM(points) AS total_points,
+    COUNT(*) AS games_played
+FROM weekly_points
+GROUP BY county
+ORDER BY total_points DESC;
