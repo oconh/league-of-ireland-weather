@@ -44,13 +44,36 @@ st.dataframe(league_df, use_container_width=True)
 weeks_df = fetch_df(WEEKS_QUERY)
 selected_week = st.selectbox("Select week", weeks_df["week_start"])
 
+def colour_result(result, score):
+    try:
+        score = int(float(score))  # safely convert even if it's float
+    except (ValueError, TypeError):
+        score = 0  # fallback if missing
+
+    if result == "W":
+        colour = "green"
+    elif result == "L":
+        colour = "red"
+    else:
+        colour = "grey"
+
+    return f"<span style='color:{colour}; font-weight:600'>{result} ({score})</span>"
+
+
 results_df = fetch_df(WEEKLY_RESULTS_QUERY, (selected_week,))
 
 results_df["Result"] = results_df.apply(
-    lambda r: f"{r['home_county']} {r['home_result']} vs {r['away_result']} {r['away_county']}",
+    lambda r: (
+        f"{r['home_county']} "
+        f"{colour_result(r['home_result'], r['home_score'])} "
+        f"vs "
+        f"{colour_result(r['away_result'], r['away_score'])} "
+        f"{r['away_county']}"
+    ),
     axis=1
 )
 
 st.subheader(f"Results – week starting {selected_week}")
 for r in results_df["Result"]:
-    st.write(r)
+    st.markdown(r, unsafe_allow_html=True)
+
