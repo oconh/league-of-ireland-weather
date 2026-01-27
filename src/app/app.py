@@ -1,63 +1,56 @@
-# app.py
 import streamlit as st
 import pandas as pd
-import psycopg2
+
+from db import fetch_df
+from queries import (
+    LEAGUE_TABLE_QUERY,
+    WEEKLY_RESULTS_QUERY,
+    WEEKS_QUERY
+)
 
 # --------------------------
-# 1. Connect to PostgreSQL
+# Page setup
 # --------------------------
-def get_connection():
-    conn = psycopg2.connect(
-        host="localhost",       # or your Docker/container host
-        port=5432,              # Docker port mapping
-        database="weather",
-        user="weather_user",
-        password="weather_pass"  # match docker-compose.yml
-    )
-    return conn
+st.set_page_config(
+    page_title="League of Misery",
+    layout="wide"
+)
 
-# --------------------------
-# 2. Fetch league table
-# --------------------------
-@st.cache_data
-def fetch_league_table():
-    query = """
-        SELECT
-            county,
-            ROUND(AVG(rain_sum)::numeric, 2) AS avg_rain_mm,
-            ROUND(AVG(wind_speed)::numeric, 2) AS avg_wind_kmh,
-            ROUND(AVG(temp_min)::numeric, 2) AS avg_temp_min,
-            ROUND(AVG(rain_sum + wind_speed - temp_min)::numeric, 2) AS avg_misery_score
-        FROM weather_daily
-        GROUP BY county
-        ORDER BY avg_misery_score DESC;
-    """
-    conn = get_connection()
-    df = pd.read_sql(query, conn)
-    conn.close()
-    return df
+st.title("☔ League of Misery")
+st.markdown(
+    "Counties compete weekly based on **misery score** "
+    "(rain + wind − temperature). Higher misery wins."
+)
 
 # --------------------------
-# 3. Streamlit layout
+# League Table
 # --------------------------
-st.set_page_config(page_title="Irish Weather League Table", layout="wide")
-st.title("☔ League of Ireland: Worst Weather Counties")
+league_df = fetch_df(LEAGUE_TABLE_QUERY)
 
-st.markdown("""
-This dashboard ranks Irish counties based on a **misery score**, calculated as:
-
-**Misery Score = Average Rain + Average Wind - Average Minimum Temperature**
-""")
-
-# Fetch data
-df = fetch_league_table()
-
-# Rename columns to be cleaner for display
-df_display = df[["county", "avg_misery_score"]].rename(columns={
+league_df = league_df.rename(columns={
     "county": "County",
-    "avg_misery_score": "Avg Misery Score"
+    "total_points": "Points",
+    "games_played": "Played"
 })
 
-# Display table
+league_df.insert(0, "Pos", range(1, len(league_df) + 1))
+
 st.subheader("League Table")
-st.dataframe(df_display, use_container_width=True)
+st.dataframe(league_df, use_container_width=True)
+
+# --------------------------
+# Weekly Results
+# --------------------------
+weeks_df = fetch_df(WEEKS_QUERY)
+selected_week = st.selectbox("Select week", weeks_df["week_start"])
+
+results_df = fetch_df(WEEKLY_RESULTS_QUERY, (selected_week,))
+
+results_df["Result"] = results_df.apply(
+    lambda r: f"{r['home_county']} {r['home_result']} vs {r['away_result']} {r['away_county']}",
+    axis=1
+)
+
+st.subheader(f"Results – week starting {selected_week}")
+for r in results_df["Result"]:
+    st.write(r)
