@@ -22,7 +22,7 @@ SELECT
     ROUND(AVG(rain_sum)::numeric, 2) AS avg_rain_mm,
     ROUND(AVG(wind_speed)::numeric, 2) AS avg_wind_kmh,
     ROUND(AVG(temp_min)::numeric, 2) AS avg_min_temp,
-    ROUND(AVG(rain_sum + wind_speed - temp_min)::numeric, 2) AS misery_score
+    ROUND(AVG(rain_sum + wind_speed - temp_min))::int AS misery_score  -- whole number
 FROM weather_daily
 GROUP BY county, week_start
 ON CONFLICT (county, week_start)
