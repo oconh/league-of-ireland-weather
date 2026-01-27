@@ -46,9 +46,9 @@ for fixture_id, home, away in fixtures:
     away_score = cur.fetchone()[0]
 
     # Determine points
-    if home_score < away_score:
+    if home_score > away_score:
         home_points, away_points = 3, 0
-    elif home_score > away_score:
+    elif home_score < away_score:
         home_points, away_points = 0, 3
     else:
         home_points = away_points = 1
@@ -58,7 +58,7 @@ for fixture_id, home, away in fixtures:
         INSERT INTO weekly_points (week_start, county, points)
         VALUES (%s, %s, %s)
         ON CONFLICT (week_start, county)
-        DO UPDATE SET points = weekly_points.points + EXCLUDED.points
+        DO UPDATE SET points = EXCLUDED.points
     """, (week_start, home, home_points))
 
     # Insert/update points for away county
@@ -66,7 +66,7 @@ for fixture_id, home, away in fixtures:
         INSERT INTO weekly_points (week_start, county, points)
         VALUES (%s, %s, %s)
         ON CONFLICT (week_start, county)
-        DO UPDATE SET points = weekly_points.points + EXCLUDED.points
+        DO UPDATE SET points = EXCLUDED.points
     """, (week_start, away, away_points))
 
 # ----------------------------
