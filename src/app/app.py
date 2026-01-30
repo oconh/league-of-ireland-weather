@@ -36,7 +36,7 @@ league_df = league_df.rename(columns={
 league_df.insert(0, "Pos", range(1, len(league_df) + 1))
 
 st.subheader("League Table")
-st.dataframe(league_df, use_container_width=True)
+st.dataframe(league_df, width='stretch')
 
 # --------------------------
 # Weekly Results
