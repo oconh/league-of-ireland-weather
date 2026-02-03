@@ -1,4 +1,3 @@
-# queries.py
 # All SQL lives here
 
 # --------------------------

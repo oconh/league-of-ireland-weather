@@ -2,7 +2,7 @@ import psycopg2
 from datetime import date
 
 # ----------------------------
-# 1️⃣ Connect to Postgres
+# Connect to Postgres
 # ----------------------------
 conn = psycopg2.connect(
     host="localhost",
@@ -14,12 +14,12 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 
 # ----------------------------
-# 2️⃣ Define week to calculate
+# Define week to calculate
 # ----------------------------
 week_start = date(2026, 1, 26)  # change as needed
 
 # ----------------------------
-# 3️⃣ Fetch fixtures for the week
+# Fetch fixtures for the week
 # ----------------------------
 cur.execute("""
     SELECT fixture_id, home_county, away_county
@@ -29,7 +29,7 @@ cur.execute("""
 fixtures = cur.fetchall()
 
 # ----------------------------
-# 4️⃣ Calculate points
+# Calculate points
 # ----------------------------
 for fixture_id, home, away in fixtures:
     # Get misery scores
@@ -70,7 +70,7 @@ for fixture_id, home, away in fixtures:
     """, (week_start, away, away_points))
 
 # ----------------------------
-# 5️⃣ Commit and close
+# Commit and close
 # ----------------------------
 conn.commit()
 cur.close()

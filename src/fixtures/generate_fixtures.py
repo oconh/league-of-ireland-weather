@@ -2,7 +2,7 @@ import psycopg2
 from datetime import date, timedelta
 
 # ----------------------------
-# 1️⃣ Connect to Postgres
+# Connect to Postgres
 # ----------------------------
 conn = psycopg2.connect(
     host="localhost",
@@ -14,7 +14,7 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 
 # ----------------------------
-# 2️⃣ Get all counties
+# Get all counties
 # ----------------------------
 cur.execute("SELECT DISTINCT county FROM county_weekly_misery ORDER BY county;")
 counties = [row[0] for row in cur.fetchall()]
@@ -27,7 +27,7 @@ num_weeks = (len(counties) - 1) * 2  # double round-robin
 half = len(counties) // 2
 
 # ----------------------------
-# 3️⃣ Round-robin scheduling
+# Round-robin scheduling
 # ----------------------------
 def round_robin_schedule(teams):
     schedule = []
@@ -56,12 +56,12 @@ second_half = [[(away, home) for home, away in week] for week in first_half]
 full_schedule = first_half + second_half
 
 # ----------------------------
-# 4️⃣ Clear existing fixtures (optional)
+# Clear existing fixtures (optional)
 # ----------------------------
 cur.execute("DELETE FROM fixtures;")
 
 # ----------------------------
-# 5️⃣ Insert into fixtures table
+# Insert into fixtures table
 # ----------------------------
 start_week = date(2026, 1, 26)
 week_increment = timedelta(weeks=1)
@@ -76,7 +76,7 @@ for weekly_matches in full_schedule:
     current_week += week_increment
 
 # ----------------------------
-# 6️⃣ Commit and close
+# Commit and close
 # ----------------------------
 
 conn.commit()
