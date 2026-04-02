@@ -1,18 +1,17 @@
 import os
-import psycopg2
 import pandas as pd
+from sqlalchemy import create_engine
 
-def get_conn():
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        dbname=os.getenv("DB_NAME", "weather"),
-        user=os.getenv("DB_USER", "weather_user"),
-        password=os.getenv("DB_PASS"),
-        port=int(os.getenv("DB_PORT", 5432))
+
+def get_engine():
+    return create_engine(
+        f"postgresql+psycopg2://{os.getenv('DB_USER', 'weather_user')}:"
+        f"{os.getenv('DB_PASS', 'weather_pass')}@"
+        f"{os.getenv('DB_HOST', 'localhost')}:"
+        f"{os.getenv('DB_PORT', '5432')}/"
+        f"{os.getenv('DB_NAME', 'weather')}"
     )
 
-def fetch_df(query, params=None):
-    conn = get_conn()
-    df = pd.read_sql(query, conn, params=params)
-    conn.close()
-    return df
+
+def read_table(table_name):
+    return pd.read_sql_table(table_name, get_engine())
