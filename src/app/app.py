@@ -32,6 +32,9 @@ st.dataframe(league_df, width='stretch')
 fixtures = read_table("fixtures")
 misery = read_table("county_weekly_misery")
 
+fixtures["week_start"] = pd.to_datetime(fixtures["week_start"])
+misery["week_start"] = pd.to_datetime(misery["week_start"])
+
 weeks = sorted(fixtures["week_start"].unique(), reverse=True)
 selected_week = st.selectbox("Select week", weeks)
 
@@ -59,9 +62,13 @@ def get_result(h, a):
     return "D", "D"
 
 
-results_df[["home_result", "away_result"]] = results_df.apply(
-    lambda r: pd.Series(get_result(r["home_score"], r["away_score"])), axis=1
-)
+if not results_df.empty:
+    results_df[["home_result", "away_result"]] = results_df.apply(
+        lambda r: pd.Series(get_result(r["home_score"], r["away_score"])), axis=1
+    )
+else:
+    results_df["home_result"] = pd.Series(dtype=str)
+    results_df["away_result"] = pd.Series(dtype=str)
 
 
 def colour_result(result, score):
@@ -73,17 +80,19 @@ def colour_result(result, score):
     return f"<span style='color:{colour}; font-weight:600'>{result} ({score})</span>"
 
 
-results_df["Result"] = results_df.apply(
-    lambda r: (
-        f"{r['home_county']} "
-        f"{colour_result(r['home_result'], r['home_score'])} "
-        f"vs "
-        f"{colour_result(r['away_result'], r['away_score'])} "
-        f"{r['away_county']}"
-    ),
-    axis=1
-)
-
 st.subheader(f"Results – week starting {selected_week}")
-for r in results_df["Result"]:
-    st.markdown(r, unsafe_allow_html=True)
+if results_df.empty:
+    st.info("No results found for this week.")
+else:
+    results_df["Result"] = results_df.apply(
+        lambda r: (
+            f"{r['home_county']} "
+            f"{colour_result(r['home_result'], r['home_score'])} "
+            f"vs "
+            f"{colour_result(r['away_result'], r['away_score'])} "
+            f"{r['away_county']}"
+        ),
+        axis=1
+    )
+    for r in results_df["Result"]:
+        st.markdown(r, unsafe_allow_html=True)
